@@ -26,6 +26,8 @@ export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [user, setUser] = useState({ name: 'Алексей Иванов', email: 'alexey@example.com', phone: '+7 (999) 123-45-67' });
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
 
   const calculatePrice = () => {
     let basePrice = 0;
@@ -113,7 +115,15 @@ export default function Index() {
       expert: 'Вячеслав',
       deadline: '2024-01-15',
       price: 4500,
-      files: ['kursovaya_ekonomika.docx', 'prezentaciya.pptx']
+      files: ['kursovaya_ekonomika.docx', 'prezentaciya.pptx'],
+      timeline: [
+        { stage: 'Заказ получен', date: '2024-01-01 10:00', status: 'completed', comment: 'Заказ принят в работу' },
+        { stage: 'Анализ требований', date: '2024-01-02 14:00', status: 'completed', comment: 'Изучены методические указания' },
+        { stage: 'Сбор материалов', date: '2024-01-05 09:00', status: 'completed', comment: 'Подобраны актуальные источники' },
+        { stage: 'Написание работы', date: '2024-01-10 16:00', status: 'completed', comment: 'Основная часть готова' },
+        { stage: 'Проверка и редактура', date: '2024-01-14 12:00', status: 'completed', comment: 'Работа проверена на антиплагиат' },
+        { stage: 'Сдача работы', date: '2024-01-15 15:00', status: 'completed', comment: 'Работа успешно сдана' }
+      ]
     },
     {
       id: '#2024-002',
@@ -123,7 +133,17 @@ export default function Index() {
       expert: 'Артём',
       deadline: '2024-02-28',
       price: 25000,
-      files: ['chapter1.docx', 'chapter2.docx']
+      files: ['chapter1.docx', 'chapter2.docx'],
+      timeline: [
+        { stage: 'Заказ получен', date: '2024-01-01 12:00', status: 'completed', comment: 'Заказ принят, назначен эксперт Артём' },
+        { stage: 'Анализ требований', date: '2024-01-03 10:00', status: 'completed', comment: 'Проанализированы требования ВУЗа и тема' },
+        { stage: 'Разработка структуры', date: '2024-01-05 16:00', status: 'completed', comment: 'Утверждена структура работы' },
+        { stage: 'Первая глава', date: '2024-01-10 14:00', status: 'completed', comment: 'Теоретическая часть завершена' },
+        { stage: 'Вторая глава', date: '2024-01-15 18:00', status: 'in_progress', comment: 'Идёт разработка практической части' },
+        { stage: 'Третья глава', date: null, status: 'pending', comment: 'Ожидает завершения' },
+        { stage: 'Заключение и оформление', date: null, status: 'pending', comment: 'Ожидает' },
+        { stage: 'Итоговая проверка', date: null, status: 'pending', comment: 'Ожидает' }
+      ]
     },
     {
       id: '#2024-003',
@@ -133,7 +153,14 @@ export default function Index() {
       expert: 'Ляна',
       deadline: '2024-01-20',
       price: 1200,
-      files: []
+      files: [],
+      timeline: [
+        { stage: 'Заказ получен', date: '2024-01-12 09:00', status: 'completed', comment: 'Заказ в очереди' },
+        { stage: 'Анализ требований', date: null, status: 'pending', comment: 'Ожидает начала работы' },
+        { stage: 'Поиск источников', date: null, status: 'pending', comment: 'Ожидает' },
+        { stage: 'Написание', date: null, status: 'pending', comment: 'Ожидает' },
+        { stage: 'Проверка и сдача', date: null, status: 'pending', comment: 'Ожидает' }
+      ]
     }
   ];
 
@@ -319,6 +346,17 @@ export default function Index() {
                                   </span>
                                 </div>
                                 <div className="flex space-x-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedOrder(order);
+                                      setTrackingOpen(true);
+                                    }}
+                                  >
+                                    <Icon name="Eye" className="mr-2" size={14} />
+                                    Отслеживание
+                                  </Button>
                                   <Button size="sm" variant="outline">
                                     <Icon name="MessageCircle" className="mr-2" size={14} />
                                     Чат
@@ -795,6 +833,178 @@ export default function Index() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Order Tracking Dialog */}
+      <Dialog open={trackingOpen} onOpenChange={setTrackingOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-inter text-xl">
+              Отслеживание заказа {selectedOrder?.id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-6">
+              {/* Order Info */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">{selectedOrder.title}</h3>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>ID: {selectedOrder.id}</p>
+                        <p>Эксперт: {selectedOrder.expert}</p>
+                        <p>Срок: до {selectedOrder.deadline}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge className={`${getStatusColor(selectedOrder.status)} text-white mb-2`}>
+                        {getStatusText(selectedOrder.status)}
+                      </Badge>
+                      <p className="text-lg font-semibold text-primary">{selectedOrder.price.toLocaleString()} ₽</p>
+                      {selectedOrder.status === 'in_progress' && (
+                        <div className="mt-2">
+                          <Progress value={selectedOrder.progress} className="h-2" />
+                          <p className="text-sm text-muted-foreground mt-1">{selectedOrder.progress}% завершено</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Timeline */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Этапы выполнения</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedOrder.timeline.map((step, index) => (
+                      <div key={index} className="flex items-start space-x-4">
+                        {/* Timeline Line */}
+                        <div className="flex flex-col items-center">
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                            step.status === 'completed' ? 'bg-green-500 border-green-500' :
+                            step.status === 'in_progress' ? 'bg-blue-500 border-blue-500 animate-pulse' :
+                            'bg-gray-200 border-gray-300'
+                          }`}>
+                            {step.status === 'completed' && (
+                              <Icon name="Check" size={12} className="text-white m-0.5" />
+                            )}
+                          </div>
+                          {index < selectedOrder.timeline.length - 1 && (
+                            <div className={`w-0.5 h-8 mt-1 ${
+                              step.status === 'completed' ? 'bg-green-300' : 'bg-gray-200'
+                            }`} />
+                          )}
+                        </div>
+                        
+                        {/* Step Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className={`font-medium ${
+                              step.status === 'completed' ? 'text-green-700' :
+                              step.status === 'in_progress' ? 'text-blue-700' :
+                              'text-gray-500'
+                            }`}>
+                              {step.stage}
+                            </h4>
+                            {step.date && (
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(step.date).toLocaleDateString('ru-RU', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{step.comment}</p>
+                          
+                          {step.status === 'in_progress' && (
+                            <Badge className="bg-blue-100 text-blue-700 mt-2 text-xs">
+                              <Icon name="Clock" size={12} className="mr-1" />
+                              В процессе
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Последние уведомления</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                      <Icon name="Info" size={16} className="text-blue-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Обновление по заказу</p>
+                        <p className="text-xs text-muted-foreground">2 часа назад</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Эксперт приступил к выполнению второй главы
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                      <Icon name="CheckCircle" size={16} className="text-green-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Этап завершён</p>
+                        <p className="text-xs text-muted-foreground">вчера в 14:00</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Первая глава успешно завершена и проверена
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                      <Icon name="Clock" size={16} className="text-yellow-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Напоминание</p>
+                        <p className="text-xs text-muted-foreground">3 дня назад</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          До окончания срока осталось 14 дней
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Expert Contact */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">
+                        {teamMembers.find(m => m.name === selectedOrder.expert)?.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{selectedOrder.expert}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {teamMembers.find(m => m.name === selectedOrder.expert)?.role}
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
+                      <Icon name="MessageCircle" className="mr-2" size={14} />
+                      Написать эксперту
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="bg-secondary text-white py-12">
