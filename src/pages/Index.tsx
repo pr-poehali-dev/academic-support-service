@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 
 export default function Index() {
@@ -11,6 +14,11 @@ export default function Index() {
   const [complexity, setComplexity] = useState('');
   const [deadline, setDeadline] = useState('');
   const [calculatedPrice, setCalculatedPrice] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedExpert, setSelectedExpert] = useState('');
+  const [message, setMessage] = useState('');
+  const [name, setName] = useState('');
+  const [consultantOpen, setConsultantOpen] = useState(false);
 
   const calculatePrice = () => {
     let basePrice = 0;
@@ -43,7 +51,9 @@ export default function Index() {
       specialty: 'IT и облачные технологии',
       description: 'Участник сборной России по компетенции «Облачные технологии» (WorldSkills Russia), призёр и победитель национальных этапов.',
       expertise: ['IT-проекты', 'Веб-разработка', 'AWS', 'DevOps', 'Техническая архитектура'],
-      avatar: '👨‍💻'
+      avatar: '👨‍💻',
+      online: true,
+      responseTime: '5 мин'
     },
     {
       name: 'Вячеслав',
@@ -51,7 +61,9 @@ export default function Index() {
       specialty: 'Технические и экономические дисциплины',
       description: 'Опыт в проектировании, расчётах, технико-экономическом анализе. Работает с AutoCAD, Excel, Revit, КОМПАС-3D.',
       expertise: ['Строительные чертежи', 'Сопромат', 'Теплотехника', 'Экономика предприятия', 'Бизнес-планы'],
-      avatar: '👨‍🔧'
+      avatar: '👨‍🔧',
+      online: true,
+      responseTime: '10 мин'
     },
     {
       name: 'Ляна',
@@ -59,7 +71,9 @@ export default function Index() {
       specialty: 'Гуманитарные и социальные науки',
       description: 'Фокус на качественное научное исследование, методологическую строгость и актуальность.',
       expertise: ['Психология', 'Педагогика', 'Социология', 'Философия', 'Лингвистика', 'Право'],
-      avatar: '👩‍🎓'
+      avatar: '👩‍🎓',
+      online: false,
+      responseTime: '30 мин'
     },
     {
       name: 'Елена',
@@ -67,7 +81,9 @@ export default function Index() {
       specialty: 'Структурирование научных работ',
       description: 'Специализируется на структурировании научных работ, проверке логики, соответствию методическим требованиям.',
       expertise: ['Редактура', 'Оформление по ГОСТ', 'Антиплагиат', 'Презентации', 'Рецензии'],
-      avatar: '👩‍💼'
+      avatar: '👩‍💼',
+      online: true,
+      responseTime: '15 мин'
     },
     {
       name: 'Вика',
@@ -75,7 +91,9 @@ export default function Index() {
       specialty: 'UX и презентационные материалы',
       description: 'Создаёт удобные интерфейсы, адаптивные сайты, интерактивные презентации и визуальные компоненты проектов.',
       expertise: ['Дизайн презентаций', 'Веб-интерфейсы', 'Инфографика', 'UX-дизайн', 'IT-проекты'],
-      avatar: '👩‍🎨'
+      avatar: '👩‍🎨',
+      online: true,
+      responseTime: '3 мин'
     }
   ];
 
@@ -206,12 +224,21 @@ export default function Index() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">{member.description}</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {member.expertise.map((skill, skillIndex) => (
                       <Badge key={skillIndex} variant="secondary" className="text-xs">
                         {skill}
                       </Badge>
                     ))}
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${member.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                      <span className="text-xs text-muted-foreground">
+                        {member.online ? 'Онлайн' : 'Офлайн'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">~{member.responseTime}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -351,6 +378,87 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* Online Consultant Widget */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <Dialog open={consultantOpen} onOpenChange={setConsultantOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg rounded-full w-16 h-16 animate-pulse">
+              <Icon name="MessageSquare" size={24} />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-inter text-xl">Онлайн-консультант</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-muted-foreground">Выберите эксперта по вашей специализации:</p>
+              
+              <div className="space-y-3">
+                {teamMembers.map((member, index) => (
+                  <div key={index} 
+                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                         selectedExpert === member.name 
+                           ? 'border-primary bg-primary/5' 
+                           : 'border-gray-200 hover:border-primary/50'
+                       }`}
+                       onClick={() => setSelectedExpert(member.name)}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{member.avatar}</span>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium">{member.name}</h4>
+                            <div className={`w-2 h-2 rounded-full ${member.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{member.role}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={member.online ? 'default' : 'secondary'} className="text-xs">
+                          {member.online ? 'Онлайн' : 'Офлайн'}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">~{member.responseTime}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedExpert && (
+                <div className="space-y-3 border-t pt-4 animate-fade-in">
+                  <Input 
+                    placeholder="Ваше имя" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <Textarea 
+                    placeholder="Опишите ваш вопрос или проект..." 
+                    value={message} 
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={3}
+                  />
+                  <Button 
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    disabled={!name || !message}
+                    onClick={() => {
+                      // Здесь будет отправка сообщения
+                      alert(`Сообщение отправлено эксперту ${selectedExpert}!`);
+                      setConsultantOpen(false);
+                      setName('');
+                      setMessage('');
+                      setSelectedExpert('');
+                    }}
+                  >
+                    <Icon name="Send" className="mr-2" size={16} />
+                    Отправить сообщение
+                  </Button>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Footer */}
       <footer className="bg-secondary text-white py-12">
