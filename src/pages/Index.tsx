@@ -7,6 +7,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 
 export default function Index() {
@@ -19,6 +22,10 @@ export default function Index() {
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
   const [consultantOpen, setConsultantOpen] = useState(false);
+  const [cabinetOpen, setCabinetOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [user, setUser] = useState({ name: 'Алексей Иванов', email: 'alexey@example.com', phone: '+7 (999) 123-45-67' });
 
   const calculatePrice = () => {
     let basePrice = 0;
@@ -97,6 +104,71 @@ export default function Index() {
     }
   ];
 
+  const orders = [
+    {
+      id: '#2024-001',
+      title: 'Курсовая работа по экономике',
+      status: 'completed',
+      progress: 100,
+      expert: 'Вячеслав',
+      deadline: '2024-01-15',
+      price: 4500,
+      files: ['kursovaya_ekonomika.docx', 'prezentaciya.pptx']
+    },
+    {
+      id: '#2024-002',
+      title: 'Дипломная работа по IT',
+      status: 'in_progress',
+      progress: 75,
+      expert: 'Артём',
+      deadline: '2024-02-28',
+      price: 25000,
+      files: ['chapter1.docx', 'chapter2.docx']
+    },
+    {
+      id: '#2024-003',
+      title: 'Реферат по психологии',
+      status: 'pending',
+      progress: 0,
+      expert: 'Ляна',
+      deadline: '2024-01-20',
+      price: 1200,
+      files: []
+    }
+  ];
+
+  const documents = [
+    { name: 'kursovaya_ekonomika.docx', type: 'docx', size: '2.4 MB', date: '2024-01-15', orderId: '#2024-001' },
+    { name: 'prezentaciya.pptx', type: 'pptx', size: '8.1 MB', date: '2024-01-15', orderId: '#2024-001' },
+    { name: 'chapter1.docx', type: 'docx', size: '1.8 MB', date: '2024-01-10', orderId: '#2024-002' },
+    { name: 'chapter2.docx', type: 'docx', size: '2.1 MB', date: '2024-01-12', orderId: '#2024-002' },
+    { name: 'metodichka.pdf', type: 'pdf', size: '15.6 MB', date: '2024-01-08', orderId: null }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-500';
+      case 'in_progress': return 'bg-blue-500';
+      case 'pending': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Завершён';
+      case 'in_progress': return 'В работе';
+      case 'pending': return 'Ожидает';
+      default: return 'Неизвестно';
+    }
+  };
+
+  const handleLogin = () => {
+    if (loginForm.email && loginForm.password) {
+      setIsLoggedIn(true);
+    }
+  };
+
   const services = [
     { title: 'Курсовые и дипломные работы', icon: 'GraduationCap', description: 'По любому направлению с соблюдением ГОСТ' },
     { title: 'Технические расчёты', icon: 'Calculator', description: 'Чертежи, проекты, инженерные решения' },
@@ -147,10 +219,274 @@ export default function Index() {
             <a href="#calculator" className="text-secondary hover:text-primary transition-colors">Калькулятор</a>
             <a href="#contact" className="text-secondary hover:text-primary transition-colors">Контакты</a>
           </nav>
-          <Button className="bg-primary hover:bg-primary/90 text-white">
-            <Icon name="MessageCircle" className="mr-2" size={16} />
-            Telegram
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Dialog open={cabinetOpen} onOpenChange={setCabinetOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                  <Icon name="User" className="mr-2" size={16} />
+                  Личный кабинет
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-inter text-2xl">
+                    {isLoggedIn ? 'Личный кабинет' : 'Вход в личный кабинет'}
+                  </DialogTitle>
+                </DialogHeader>
+                
+                {!isLoggedIn ? (
+                  <div className="space-y-4 max-w-md mx-auto">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <Input 
+                        type="email"
+                        placeholder="your@email.com"
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Пароль</label>
+                      <Input 
+                        type="password"
+                        placeholder="••••••••"
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                      />
+                    </div>
+                    <Button 
+                      className="w-full bg-primary hover:bg-primary/90 text-white"
+                      onClick={handleLogin}
+                      disabled={!loginForm.email || !loginForm.password}
+                    >
+                      Войти
+                    </Button>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Нет аккаунта? <span className="text-primary cursor-pointer hover:underline">Зарегистрироваться</span>
+                    </p>
+                  </div>
+                ) : (
+                  <Tabs defaultValue="orders" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="orders">Заказы</TabsTrigger>
+                      <TabsTrigger value="documents">Документы</TabsTrigger>
+                      <TabsTrigger value="profile">Профиль</TabsTrigger>
+                      <TabsTrigger value="settings">Настройки</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="orders" className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-inter font-semibold text-lg">История заказов</h3>
+                        <Badge variant="secondary">{orders.length} заказов</Badge>
+                      </div>
+                      
+                      <div className="grid gap-4">
+                        {orders.map((order) => (
+                          <Card key={order.id} className="hover:shadow-md transition-shadow">
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <h4 className="font-medium">{order.title}</h4>
+                                    <Badge className={`${getStatusColor(order.status)} text-white text-xs`}>
+                                      {getStatusText(order.status)}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">ID: {order.id}</p>
+                                  <p className="text-sm text-muted-foreground">Эксперт: {order.expert}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold text-lg text-primary">{order.price.toLocaleString()} ₽</p>
+                                  <p className="text-sm text-muted-foreground">до {order.deadline}</p>
+                                </div>
+                              </div>
+                              
+                              {order.status === 'in_progress' && (
+                                <div className="mb-4">
+                                  <div className="flex justify-between text-sm mb-1">
+                                    <span>Прогресс</span>
+                                    <span>{order.progress}%</span>
+                                  </div>
+                                  <Progress value={order.progress} className="h-2" />
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Icon name="FileText" size={16} className="text-muted-foreground" />
+                                  <span className="text-sm text-muted-foreground">
+                                    {order.files.length} файлов
+                                  </span>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button size="sm" variant="outline">
+                                    <Icon name="MessageCircle" className="mr-2" size={14} />
+                                    Чат
+                                  </Button>
+                                  <Button size="sm" variant="outline">
+                                    <Icon name="Download" className="mr-2" size={14} />
+                                    Скачать
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="documents" className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-inter font-semibold text-lg">Мои документы</h3>
+                        <Badge variant="secondary">{documents.length} файлов</Badge>
+                      </div>
+                      
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Название</TableHead>
+                            <TableHead>Размер</TableHead>
+                            <TableHead>Дата</TableHead>
+                            <TableHead>Заказ</TableHead>
+                            <TableHead>Действия</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {documents.map((doc, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="flex items-center space-x-2">
+                                <Icon name="FileText" size={16} className="text-muted-foreground" />
+                                <span>{doc.name}</span>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">{doc.size}</TableCell>
+                              <TableCell className="text-muted-foreground">{doc.date}</TableCell>
+                              <TableCell>
+                                {doc.orderId ? (
+                                  <Badge variant="outline">{doc.orderId}</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-1">
+                                  <Button size="sm" variant="ghost">
+                                    <Icon name="Download" size={14} />
+                                  </Button>
+                                  <Button size="sm" variant="ghost">
+                                    <Icon name="Share" size={14} />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
+                    
+                    <TabsContent value="profile" className="space-y-4">
+                      <h3 className="font-inter font-semibold text-lg">Профиль пользователя</h3>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Личная информация</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Имя</label>
+                              <Input value={user.name} readOnly />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Email</label>
+                              <Input value={user.email} readOnly />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Телефон</label>
+                              <Input value={user.phone} readOnly />
+                            </div>
+                            <Button variant="outline" className="w-full">
+                              <Icon name="Edit" className="mr-2" size={16} />
+                              Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Статистика</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div className="flex justify-between">
+                                <span>Всего заказов</span>
+                                <Badge variant="secondary">{orders.length}</Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Завершено</span>
+                                <Badge className="bg-green-500 text-white">
+                                  {orders.filter(o => o.status === 'completed').length}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>В работе</span>
+                                <Badge className="bg-blue-500 text-white">
+                                  {orders.filter(o => o.status === 'in_progress').length}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Потрачено</span>
+                                <span className="font-semibold text-primary">
+                                  {orders.reduce((sum, o) => sum + o.price, 0).toLocaleString()} ₽
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="settings" className="space-y-4">
+                      <h3 className="font-inter font-semibold text-lg">Настройки</h3>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Уведомления</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span>Email уведомления</span>
+                            <input type="checkbox" defaultChecked className="toggle" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>SMS уведомления</span>
+                            <input type="checkbox" className="toggle" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>Push уведомления</span>
+                            <input type="checkbox" defaultChecked className="toggle" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <div className="flex justify-between pt-4">
+                        <Button variant="outline" onClick={() => setIsLoggedIn(false)}>
+                          <Icon name="LogOut" className="mr-2" size={16} />
+                          Выйти
+                        </Button>
+                        <Button variant="destructive">
+                          <Icon name="Trash" className="mr-2" size={16} />
+                          Удалить аккаунт
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                )}
+              </DialogContent>
+            </Dialog>
+            
+            <Button className="bg-primary hover:bg-primary/90 text-white">
+              <Icon name="MessageCircle" className="mr-2" size={16} />
+              Telegram
+            </Button>
+          </div>
         </div>
       </header>
 
